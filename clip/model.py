@@ -330,9 +330,9 @@ class CLIP(nn.Module):
         mask.triu_(1)  # zero out the lower diagonal
         return mask
 
-    @property
-    def dtype(self):
-        return self.visual.conv1.weight.dtype
+    #@property
+    #def dtype(self):
+    #    return self.visual.conv1.weight.dtype
 
     def encode_image(self, image):
         return self.visual(image.type(self.dtype))
@@ -391,6 +391,7 @@ def convert_weights(model: nn.Module):
                     attr.data = attr.data.half()
 
     model.apply(_convert_weights_to_fp16)
+    model.dtype = torch.float16
 
 
 def build_model(state_dict: dict):
