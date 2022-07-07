@@ -352,6 +352,24 @@ class CLIP(nn.Module):
 
         return x
 
+    def encode_single_text(self, text):
+        x = self.token_embedding(text).type(self.dtype)  # [batch_size, n_ctx, d_model]
+
+        x = x + self.positional_embedding.type(self.dtype)
+        x = x.permute(1, 0, 2)  # NLD -> LND
+        x = self.transformer(x)
+        x = x.permute(1, 0, 2)  # LND -> NLD
+        x = self.ln_final(x).type(self.dtype)
+        b,n,c = x.shape
+
+        x = x.view(b*n,c)@self.text_projection
+        x = x.view(b,n,-1)
+
+        #x0 = x[torch.arange(x.shape[0]), text.argmax(dim=-1)]
+        #x = torch.cat((x,x0[:,None,]),1)
+
+        return x
+
     def forward(self, image, text):
         image_features = self.encode_image(image)
         text_features = self.encode_text(text)
